@@ -16,9 +16,9 @@ get_img_name() {
     fi
 }
 
-DIST_VERSION="0.1.0"
+DIST_VERSION="0.2.0"
 BASE_ZIP_IMG="$(get_img_name)"
-DIST_NAME="MainsailOS"
+DIST_NAME="THEOS"
 
 BASE_BOOT_MOUNT_PATH=boot
 
@@ -31,11 +31,11 @@ export BASE_ZIP_IMG
 ### JSON sniplet Setup
 ### NOTE: Please see all config files for setup variables!!!
 # shellcheck disable=SC2034
-JSON_PRETTY_NAME="Mainsail OS"
+JSON_PRETTY_NAME="THEOS"
 # shellcheck disable=SC2034
-JSON_DESCRIPTION="A OS image with Klipper/Moonraker/Mainsail preinstalled for your 3D printers"
+JSON_DESCRIPTION="A OS image with Klipper/Moonraker/Mainsail preinstalled for your T100/T250 3d Printer"
 # shellcheck disable=SC2034
-JSON_ICON_URL="https://os.mainsail.xyz/rpi-imager.png"
+JSON_ICON_URL="https://raw.githubusercontent.com/MSzturc/THEOS/develop/.github/sdcard-logo.png"
 # shellcheck disable=SC2034
 JSON_INIT_FORMAT="none"
 # shellcheck disable=SC2034
