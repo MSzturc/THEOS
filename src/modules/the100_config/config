@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#### THE100-Configuration Install Module
+####
+#### Written by Matthäus Szturc <MSzturc@gmail.com>
+#### Copyright 2022 - till today
+####
+#### This File is distributed under GPLv3
+####
+
+#### All Credits for his great tool
+#### https://github.com/MSzturc/THE100-Configuration
+
+# shellcheck disable=all
+
+# THE100_CONFIG repo
+[[ -n "$THE100_CONFIG_REPO_SHIP" ]] || THE100_CONFIG_REPO_SHIP="https://github.com/MSzturc/THE100-Configuration.git"
+[[ -n "$THE100_CONFIG_REPO_BRANCH" ]] || THE100_CONFIG_REPO_BRANCH="main"

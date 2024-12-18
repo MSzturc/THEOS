@@ -2,19 +2,6 @@
 # Shebang for better file detection
 # shellcheck enable=require-variable-braces
 
-get_version() {
-    local ver
-    ver="$(realpath "$( dirname -- "${BASH_SOURCE[0]}")"/../src/version)"
-
-    if [ -f "${ver}" ]; then
-        cat "${ver}"
-        return
-    fi
-
-    ver="$(realpath "$( dirname -- "${BASH_SOURCE[0]}")"/version)"
-    cat "${ver}"
-}
-
 get_img_name() {
     local -a types
     types=(zip 7z xz)
@@ -29,11 +16,14 @@ get_img_name() {
     fi
 }
 
-DIST_VERSION="$(get_version)"
+DIST_VERSION="0.5.0"
 BASE_ZIP_IMG="$(get_img_name)"
-DIST_NAME="MainsailOS"
+DIST_NAME="THEOS"
+
+BASE_BOOT_MOUNT_PATH=boot
 
 # export Variables
+export BASE_BOOT_MOUNT_PATH
 export DIST_NAME
 export DIST_VERSION
 export BASE_ZIP_IMG
@@ -41,11 +31,11 @@ export BASE_ZIP_IMG
 ### JSON sniplet Setup
 ### NOTE: Please see all config files for setup variables!!!
 # shellcheck disable=SC2034
-JSON_PRETTY_NAME="Mainsail OS"
+JSON_PRETTY_NAME="THEOS"
 # shellcheck disable=SC2034
-JSON_DESCRIPTION="A OS image with Klipper/Moonraker/Mainsail preinstalled for your 3D printers"
+JSON_DESCRIPTION="A OS image with Klipper/Moonraker/Mainsail preinstalled for your T100/T250 3d Printer"
 # shellcheck disable=SC2034
-JSON_ICON_URL="https://os.mainsail.xyz/rpi-imager.png"
+JSON_ICON_URL="https://raw.githubusercontent.com/MSzturc/THEOS/develop/.github/sdcard-logo.png"
 # shellcheck disable=SC2034
 JSON_INIT_FORMAT="none"
 # shellcheck disable=SC2034

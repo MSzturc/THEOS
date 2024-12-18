@@ -41,11 +41,11 @@ gitclone MOONRAKER_REPO moonraker
 
 ## Step 3: grep PKGLIST from install-moonraker.sh for dependencies
 echo_green "Generating packages file ..."
-grep "PKGLIST=" "${MN_BUILD_INSTALL_SH}" >> "${MN_BUILD_PACKAGE_FILE}"
+grep "PACKAGES=" "${MN_BUILD_INSTALL_SH}" >> "${MN_BUILD_PACKAGE_FILE}"
 
-## Step 4: Rename PKGLIST to Module usable Var
-echo_green "Rename variable PKGLIST to MOONRAKER_DEPS ..."
-sed -i 's/PKGLIST/MOONRAKER_DEPS/g' "${MN_BUILD_PACKAGE_FILE}"
+## Step 4: Rename PACKAGES to Module usable Var
+echo_green "Rename variable PACKAGES to MOONRAKER_DEPS ..."
+sed -i 's/PACKAGES/MOONRAKER_DEPS/g' "${MN_BUILD_PACKAGE_FILE}"
 
 ## Step 5: Source cn_package.lst file
 # shellcheck disable=SC1090
@@ -71,20 +71,33 @@ sudo -u "${BASE_USER}" ./scripts/install-moonraker.sh -z -x
 echo_green "Install moonrakers PolicyKit Rules ..."
 sudo -u "${BASE_USER}" ./scripts/set-policykit-rules.sh --root
 
-## Step 10: Leave moonraker
+## Step 10: Change Mainsail Klipper origin to MSzturc/Klipper
+CONFIG_FILE="/home/${BASE_USER}/moonraker/moonraker/components/update_manager/common.py"
+OLD_ORIGIN="https://github.com/Klipper3d/klipper.git"
+NEW_ORIGIN="https://github.com/MSzturc/klipper.git"
+sed -i "s|${OLD_ORIGIN}|${NEW_ORIGIN}|g" "${CONFIG_FILE}"
+
+## Step 11: Get rid of moonraker dirty message
+sudo -u "${BASE_USER}" git update-index --assume-unchanged moonraker/components/update_manager/common.py
+
+## Step 12: Get rid of untracked timelapse message
+#sudo -u "${BASE_USER}" echo "moonraker/components/timelapse.py" >> ".git/info/exclude"
+echo "moonraker/components/timelapse.py" | sudo -u "${BASE_USER}" tee -a ".git/info/exclude" > /dev/null
+
+## Step 12: Leave moonraker
 popd &> /dev/null || exit 1
 
-## Step 11: clean packages.lst file
+## Step 13: clean packages.lst file
 rm -f "${MN_BUILD_PACKAGE_FILE}"
 
-## Step 12: leave home dir
+## Step 14: leave home dir
 popd &> /dev/null || exit 1
 
-## Step 13: Install MainsailOS premade moonraker.conf
+## Step 15: Install MainsailOS premade moonraker.conf
 echo_green "Copying MainsailOS premade moonraker.conf ..."
 unpack /filesystem/home/"${BASE_USER}" /home/"${BASE_USER}" "${BASE_USER}"
 
-## Step 14:
+## Step 16:
 echo_green "Enable moonraker.service ..."
 systemctl_if_exists enable moonraker.service
 

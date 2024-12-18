@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+#### THE100-Configuration Install Module
+####
+#### Written by Matthäus Szturc <MSzturc@gmail.com>
+#### Copyright 2022 - till today
+####
+#### This File is distributed under GPLv3
+####
+
+#### All Credits for his great tool
+#### https://github.com/MSzturc/THE100-Configuration
+# shellcheck enable=require-variable-braces
+
+# Source error handling, leave this in place
+set -EeX
+
+## Set LC_ALL to prevent errors
+export LC_ALL=C
+
+# Set DEBIAN_FRONTEND to noninteractive
+if [[ "${DEBIAN_FRONTEND}" != "noninteractive" ]]; then
+    export DEBIAN_FRONTEND=noninteractive
+fi
+
+# Source CustomPIOS common.sh
+# shellcheck disable=SC1091
+source /common.sh
+install_cleanup_trap
+
+# Module only Variables
+MOONRAKER_CONF_PATH="/home/${BASE_USER}/printer_data/config/moonraker.conf"
+
+echo_green "Installing THE100-Configuration ..."
+
+## Force apt update
+apt-get update
+## Make sure 'git' is installed!
+check_install_pkgs git
+
+## Step 1: Move to Home Dir as WorkingDirectoy
+pushd "/home/${BASE_USER}" &> /dev/null || exit 1
+
+## Step 2: clone THE100-Configuration repo
+gitclone THE100_CONFIG_REPO THE100-Configuration
+
+## Step 3: Move to THE100-Configuration as working directory
+pushd "/home/${BASE_USER}/THE100-Configuration/scripts" &> /dev/null || exit 1
+
+chmod +x install-configuration.sh
+sudo -u "${BASE_USER}" ./install-configuration.sh
+
+## Step 5: Run THE100-Configuration install routine bypassing user interaction and security checks
+# shellcheck disable=SC2016
+#sed \
+#  -e 's|if \[ "$EUID" -eq 0 \]; then|if false; then|' \
+#  -e 's|if ! command -v python3 &> /dev/null; then|if false; then|' \
+#  -e 's|if \[.*klipper.service.*\]; then|if true; then|' \
+#  < install-configuration.sh > temp_install.sh
+#chmod +x temp_install.sh
+
+#auto select answer
+#sudo -u "${BASE_USER}" ./temp_install.sh
+
+## Step 7: remove temp_install.sh
+#rm temp_install.sh
+
+## Step 8: Update moonraker.conf
+if [[ -f "${MOONRAKER_CONF_PATH}" ]]; then
+    echo_green "Copying temporary file ..."
+    unpack /filesystem/tmp /tmp root
+    cat /tmp/moonraker_update_entry.txt >> "${MOONRAKER_CONF_PATH}"
+else
+    echo_red "File moonraker.conf not found ... [SKIPPED]"
+fi
+
+## Step 9: Leave THE100-Configuration
+popd &> /dev/null || exit 1
+
+## Step 10: leave home dir
+popd &> /dev/null || exit 1
+
+## Finish
+echo_green "Installing Klippain THE100-Configuration ... DONE!"

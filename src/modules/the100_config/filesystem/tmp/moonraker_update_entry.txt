@@ -1,0 +1,8 @@
+
+[update_manager THE100-Configuration]
+type: git_repo
+channel: dev
+path: ~/THE100-Configuration
+origin: https://github.com/MSzturc/THE100-Configuration.git
+managed_services: klipper
+primary_branch: main

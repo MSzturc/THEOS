@@ -2,7 +2,6 @@ name: Build MainsailOS
 on:
   push:
     branches:
-      - "master"
       - "develop"
     paths:
       - "src/modules/**"
@@ -65,10 +64,11 @@ jobs:
         uses: ./repository/.github/actions/build
         with:
           config: ${{ matrix.config }}
+          custompios-ref: 1.5.0
 
       - name: Rename image file
         id: move-image
-        if: always()
+        if: ${{ success() }}
         shell: bash
         run: |
           source repository/src/config
@@ -80,10 +80,10 @@ jobs:
           echo "image=${IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Upload failed Logfile
-        if: failure()
-        uses: actions/upload-artifact@v3
+        if: ${{ failure() && steps.build.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v4
         with:
-          name: failed-${{ steps.move-image.outputs.image }}.log
+          name: failed-${{ steps.build.outputs.type }}-${{ steps.build.outputs.sbc }}.log
           path: repository/src/build.log
 
       - name: Compressing Image
@@ -100,19 +100,19 @@ jobs:
           sha256sum ${{ steps.move-image.outputs.image }}.img.xz > ${{ steps.move-image.outputs.image }}.img.xz.sha256
 
       - name: Upload Compressed Image
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.move-image.outputs.image }}.img.xz
           path: ${{ steps.move-image.outputs.image }}.img.xz
 
       - name: Upload Compressed Image Checksum
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.move-image.outputs.image }}.img.xz.sha256
           path: ${{ steps.move-image.outputs.image }}.img.xz.sha256
 
       - name: Upload Image Checksum
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.move-image.outputs.image }}.img.sha256
           path: ${{ steps.move-image.outputs.image }}.img.sha256

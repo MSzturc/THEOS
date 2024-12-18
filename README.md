@@ -1,98 +1,93 @@
-![downloads](https://img.shields.io/github/downloads/mainsail-crew/MainsailOS/total)
-[![discord](https://img.shields.io/discord/758059413700345988?color=%235865F2&label=discord&logo=discord&logoColor=white&style=flat)](https://discord.gg/mainsail)
-
 <p align="center">
-<img src=".github/sdcard-logo.png" style="width:40%" >
+  <img src=".github/sdcard-logo.png" style="width:40%">
 </p>
 
-# MainsailOS
+# What is THEOS?
 
-A [Raspberry Pi OS](https://www.raspberrypi.org/software/) based distribution for 3D Printers. \
-It includes everything to get started with Klipper Firmware and Mainsail.
+**THEOS** is a prebuilt image for the **Banana Pi M2 Zero** and the **Orange Pi Zero 3**. It includes essential pre-configurations and software for running **Klipper firmware** with **Mainsail** as the user interface to control your **T100** or **T250** 3D printer.
 
-Learn more about:
+## Installation Guide
 
--   [Klipper Firmware](https://www.klipper3d.org/)
--   [Moonraker](https://moonraker.readthedocs.io/en/latest/)
--   [Mainsail](https://docs.mainsail.xyz/)
+#### What You Need
 
-## How to install MainsailOS ?
+To install THEOS, you’ll need:
+- An **SD card reader**
+- An **SD card** with at least **32 GB** of space
 
-You can find detailed instructions in our [documentation](https://docs-os.mainsail.xyz).
+#### Flashing THEOS
 
-We recommend the installation via [Raspberry Pi Imager](https://docs-os.mainsail.xyz/getting-started/raspberry-pi-os-based).
+1. **Download and install the [Raspberry Pi Imager](https://www.raspberrypi.com/software/)**  
+   Compatible with Windows, Linux, and MacOS.
 
-## How to get help?
+2. **Download the latest [THEOS release](https://github.com/MSzturc/THEOS/releases/latest)**  
+   Versions are available for both the Banana Pi M2 Zero and the Orange Pi Zero 3.
 
-Please join us on [Discord](https://discord.gg/mainsail), if you need additional help.
+3. **Prepare the SD Card:**
+   - Open **Raspberry Pi Imager**.
+   - Click on **"CHOOSE OS"**, scroll to the bottom, select **"Use custom"**, and locate your downloaded THEOS file.
+   - Click on **"CHOOSE STORAGE"**, then select your SD card. **Warning:** All data on the card will be erased.
+   - Proceed with **"Next"**. When prompted for OS customization, select **"NO"**, and confirm the warning.
 
-[![discord](https://img.shields.io/discord/758059413700345988?color=%235865F2&label=discord&logo=discord&logoColor=white&style=flat)](https://discord.gg/mainsail)
+4. **Write the Image:**  
+   The process will take some time. Once complete, you’ll receive a success message.
 
-Also see the [FAQ](#faq) section.
 
-## What is included?
+## Initial Network Setup
 
-Here a list of included and preinstalled Software:
+#### For Wired Connections
+No additional steps are required. Proceed to the next section.
 
--   [Klipper (3D Printer Firmware)](https://github.com/Klipper3d/klipper)
--   [Moonraker (API Web Server for Klipper)](https://github.com/Arksine/moonraker)
--   [Mainsail (Web interface for Klipper/Moonraker)](https://github.com/mainsail-crew/mainsail)
--   [Crowsnest (Webcam streaming)](https://github.com/mainsail-crew/crowsnest)
--   [Sonar (Keepalive daemon)](https://github.com/mainsail-crew/sonar)
--   [Nginx (Webserver & Proxy)](https://nginx.org/en/)
+#### For Wi-Fi Connections
+1. After flashing THEOS, unplug and replug your SD card reader. Access the **FAT boot partition** via your file manager.
+2. Locate the `network_config.txt.template` file. Copy it and rename it to `network_config.txt`.
+3. Open the `network_config.txt` file with a text editor and follow the instructions in the comments to configure your network. A valid configuration might look like this:
 
-## also includes
+   ```plaintext
+   NC_general_delete_this_file_after_completion=1
+   NC_net_change_defaults=1
+   NC_net_ethernet_enabled=1
+   NC_net_wifi_enabled=1
+   NC_net_wifi_ssid='YourWiFiName'
+   NC_net_wifi_key='YourWiFiPassword'
+   NC_net_wifi_countrycode='YourCountryCode'
 
--   Enabled Serial Connection by default. \
-    Using Hardware UART (PL011) for Boards like BTT SKR Mini E3 V3
--   Preinstalled Dependencies for Klipper's Input Shaper. \
-    You only need to build the [klipper_mcu](https://www.klipper3d.org/RPi_microcontroller.html) and installing the service. \
-    See [Klipper documentation](https://www.klipper3d.org/Measuring_Resonances.html) for more information.
--   Preinstalled python3-serial package, needed for [CanBoot](https://github.com/Arksine/CanBoot)
+## First Boot
 
-## Screenshots
+1. Insert the prepared SD card into your 3D printer.
+2. Connect necessary peripherals (e.g., network cables, webcams, USB cable to the printer).
+3. Power on the device and wait up to **5 minutes** for the boot process to complete.
+4. Access THEOS via your browser at:
+   - [http://t250.local](http://t250.local) (for T250 printers)
+   - [http://t100.local](http://t100.local) (for T100 printers)
 
-![screenshot-dashboard](https://github.com/mainsail-crew/docs/raw/master/assets/img/screenshot.png)
+## What’s Included?
 
-# FAQ
+Here’s a list of preinstalled and integrated software:
 
-**Q:** How do I report a Bug?
-**A:** First of all make sure it is _not_ an misconfiguration of
+- [Klipper](https://www.klipper3d.org/)
+- [Moonraker](https://moonraker.readthedocs.io/en/latest/)
+- [Mainsail](https://docs.mainsail.xyz/)
+- [TMC Autotune](https://github.com/MSzturc/klipper_tmc_autotune/)
+- [Shake&Tune](https://github.com/Frix-x/klippain-shaketune/)
+- [Crowsnest](https://github.com/mainsail-crew/crowsnest/)
+- [Sonar](https://github.com/mainsail-crew/sonar/)
+- [Timelapse](https://github.com/mainsail-crew/moonraker-timelapse/)
+- [KlipperScreen](https://github.com/KlipperScreen/KlipperScreen/)
 
--   moonraker
--   klipper
--   crowsnest
--   sonar
+## Todo & Features
+- [x] Support for Orange Pi Zero3
+- [x] Support for Banana Pi BPI-M2 ZERO
+- [x] Cleanup build Pipeline
+- [x] Use my own Klipper fork for build
+- [x] Integrate my own TMC AutoTune fork
+- [x] Integrate klippain shaketune
+- [x] Make Klipper accessable through t250.local / t100.local
+- [x] Integrate BDSensor
+- [x] Update Landing Page
+- [ ] create module for T250 config installation
+- [ ] create own theme
 
-If there is a bug that belongs to the OS itself,
-please look first at the official Forum of Raspberry Pi OS.\
-MainsailOS is based on Raspberry Pi OS and is only slightly modified to\
-carry the basics to run Klipper on your 3D Printer.
-Most configuration of the single components is up to you.
-We only want to provide an Image as a starting point.
-
-If there is something that is a bug caused due to the misconfiguration of MainsailOS itself, please let us know, and we will take action as soon as possible.
-Please use the issue section for that.
-Please provide as much information as you can.
-
-**Q:** What is the philosophy behind MainsailOS?
-**A:** KISS - Keep it simple and stupid.\
-We only do a bit of modification. All other documented things of the Raspberry Foundation apply.
-
-And that's our main goal of staying compatible with existing documentation.
-We will provide documentation if something is handled differently than the original documentation.
-
-**Q:** How do I contribute/support?
-**A:** There are several ways to contribute or support our work.
-Please take a closer look to [CONTRIBUTING.md](https://github.com/mainsail-crew/MainsailOS/blob/develop/CONTRIBUTING.md)
-
-# Build your own / Developing
-
-To prevent you have to deal with an entire build chain setup, \
-simply fork this repository.
-
-Enable the workflows in your fork and you are good to go. \
-On each push you make, an image is build and uploaded as an artifact.
-
-If you want or need to build locally please visit [CustomPiOS](https://github.com/guysoft/CustomPiOS). \
-Especially ["Build a Distro From within Raspbian / Debian / Ubuntu / CustomPiOS Distros"](https://github.com/guysoft/CustomPiOS#build-a-distro-from-within-raspbian--debian--ubuntu--custompios-distros)
+## Bugs
+- [x] Unofficial remote url: https://github.com/MSzturc/klipper.git
+- [x] Repo has untracked source files: ['klippy/extras/autotune_tmc.py', 'klippy/extras/motor_constants.py']
+- [x] Moonraker: Repo has untracked source files: ['moonraker/components/timelapse.py']
