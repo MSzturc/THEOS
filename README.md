@@ -39,18 +39,14 @@ No additional steps are required. Proceed to the next section.
 
 #### For Wi-Fi Connections
 1. After flashing THEOS, unplug and replug your SD card reader. Access the **FAT boot partition** via your file manager.
-2. Locate the `network_config.txt.template` file. Copy it and rename it to `network_config.txt`.
-3. Open the `network_config.txt` file with a text editor and follow the instructions in the comments to configure your network. A valid configuration might look like this:
+2. Locate the `headless_nm.txt.template` file. Copy it and rename it to `headless_nm.txt`.
+3. Open the `network_config.txt` file with a text editor that allows you to save it in a UNIX compabible format (e.g. Visual Studio Code) and follow the instructions in the comments to configure your network. A valid configuration might look like this:
 
    ```plaintext
-   NC_general_delete_this_file_after_completion=1
-   NC_net_change_defaults=1
-   NC_net_ethernet_enabled=1
-   NC_net_wifi_enabled=1
-   NC_net_wifi_ssid='YourWiFiName'
-   NC_net_wifi_key='YourWiFiPassword'
-   NC_net_wifi_countrycode='YourCountryCode'
-
+    SSID="FRITZ!Box 3280"
+    PASSWORD="123456789012345"
+    HIDDEN="false"
+    REGDOMAIN="DE"
 ## First Boot
 
 1. Insert the prepared SD card into your 3D printer.
