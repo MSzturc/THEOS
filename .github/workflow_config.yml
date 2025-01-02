@@ -28,3 +28,5 @@ buildtest:
 release:
   - armbian/bananapim2zero
   - armbian/orangepi_zero3
+  - raspberry/rpi32
+  - raspberry/rpi64
