@@ -38,7 +38,7 @@ ODROID_EXCEPTION="$(tr -d '\000' < /proc/device-tree/model | grep ODROID | grep 
 [[ -f /proc/device-tree/model ]] && [[ -n "${ODROID_EXCEPTION}" ]] && BOARD_NAME+="+"
 
 
-echo -e "\e[31m$(toilet -f big MainsailOS)\e[0m"
+echo -e "\e[31m$(toilet -f big THEOS)\e[0m"
 echo -e "Version $(cut -d ' ' -f3 /etc/mainsailos-release), based on \
 \e[34mArmbian ${VERSION/-trunk/} ${DISTRIBUTION_CODENAME^}\e[0m $([[ ${BRANCH} == edge ]])"
 echo -e "Running on \e[34m$(echo "${BOARD_NAME}" | sed 's/Orange Pi/OPi/' | \

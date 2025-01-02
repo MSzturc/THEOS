@@ -67,7 +67,6 @@ Here’s a list of preinstalled and integrated software:
 - [Klipper](https://www.klipper3d.org/)
 - [Moonraker](https://moonraker.readthedocs.io/en/latest/)
 - [Mainsail](https://docs.mainsail.xyz/)
-- [TMC Autotune](https://github.com/MSzturc/klipper_tmc_autotune/)
 - [Shake&Tune](https://github.com/Frix-x/klippain-shaketune/)
 - [Crowsnest](https://github.com/mainsail-crew/crowsnest/)
 - [Sonar](https://github.com/mainsail-crew/sonar/)
@@ -79,12 +78,12 @@ Here’s a list of preinstalled and integrated software:
 - [x] Support for Banana Pi BPI-M2 ZERO
 - [x] Cleanup build Pipeline
 - [x] Use my own Klipper fork for build
-- [x] Integrate my own TMC AutoTune fork
+- [x] Integrate TMC Driver tuning into Klipper
 - [x] Integrate klippain shaketune
 - [x] Make Klipper accessable through t250.local / t100.local
 - [x] Integrate BDSensor
 - [x] Update Landing Page
-- [ ] create module for T250 config installation
+- [x] create module for T250 config installation
 - [ ] create own theme
 
 ## Bugs

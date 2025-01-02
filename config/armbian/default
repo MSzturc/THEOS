@@ -5,7 +5,8 @@
 # See https://www.shellcheck.net/wiki/SC2155
 
 # Download Base Url
-DOWNLOAD_BASE_URL="https://github.com/mainsail-crew/armbian-builds/releases/latest/download"
+DOWNLOAD_BASE_URL="https://github.com/MSzturc/armbian-builds/releases/latest/download"
+
 
 # Base User
 BASE_ADD_USER="yes"
@@ -18,12 +19,12 @@ BASE_IMAGE_RASPBIAN="no"
 
 # partition resizing
 BASE_ROOT_PARTITION="2"
-BASE_IMAGE_ENLARGEROOT=3500
+BASE_IMAGE_ENLARGEROOT=4500
 BASE_IMAGE_RESIZEROOT=600
 # Compress not needed due compression done in workflow
 BASE_RELEASE_COMPRESS=no
 # Modules are valid for 32bit and 64bit images
-MODULES="base(pkgupgrade,udev_fix,armbian(headless_nm,mainsailos,klipper,is_req_preinstall,moonraker,mainsail,shaketune,autotune,bdsensor,the100_config,timelapse,crowsnest,sonar))"
+MODULES="base(pkgupgrade,udev_fix,armbian(headless_nm,mainsailos,klipper,is_req_preinstall,moonraker,mainsail,shaketune,the100_config,timelapse,crowsnest,sonar))"
 
 # export Variables
 export DOWNLOAD_BASE_URL
