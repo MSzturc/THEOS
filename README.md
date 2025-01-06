@@ -40,7 +40,7 @@ No additional steps are required. Proceed to the next section.
 #### For Wi-Fi Connections
 1. After flashing THEOS, unplug and replug your SD card reader. Access the **FAT boot partition** via your file manager.
 2. Locate the `headless_nm.txt.template` file. Copy it and rename it to `headless_nm.txt`.
-3. Open the `network_config.txt` file with a text editor that allows you to save it in a UNIX compabible format (e.g. Visual Studio Code) and follow the instructions in the comments to configure your network. A valid configuration might look like this:
+3. Open the `headless_nm.txt` file with a text editor that allows you to save it in a UNIX compabible format (e.g. Visual Studio Code) and follow the instructions in the comments to configure your network. A valid configuration might look like this:
 
    ```plaintext
     SSID="FRITZ!Box 3280"
