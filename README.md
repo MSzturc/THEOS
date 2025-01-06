@@ -53,8 +53,75 @@ No additional steps are required. Proceed to the next section.
 2. Connect necessary peripherals (e.g., network cables, webcams, USB cable to the printer).
 3. Power on the device and wait up to **5 minutes** for the boot process to complete.
 4. Access THEOS via your browser at:
-   - [http://t250.local](http://t250.local) (for T250 printers)
-   - [http://t100.local](http://t100.local) (for T100 printers)
+   - [http://theos.local](http://theos.local)
+5. If you are using THEOS for the first time, you may encounter the following red error message: `Klipper reports: ERROR: mcu 'mcu': Unable to connect`. That's okay, follow the instructions in the **Flashing Firmware** chapter to resolve this issue.
+
+## Flashing Firmware
+
+In THEOS, **Managed Devices** streamline the integration and maintenance of hardware components such as MCUs by automating firmware updates and ensuring compatibility with Klipper updates. This chapter guides you through the process of registering a 3D printer controller board, using the BTT Kraken as an example of a Managed Device. By following this process, you will enable seamless firmware management and enhance overall system stability.
+
+Additionally, if you are using other MCU devices, such as an input shaper board, the main steps of this guide will remain the same. However, certain hardware parameters in Step X may differ. Please refer to the manufacturer's firmware flashing guide to obtain the specific hardware parameters required for your device.
+
+1. **SSH into THEOS**
+Use the following credentials to establish an SSH connection:
+   - **Hostname:** `pi@theos.local`
+   - **Password:** `armbian` *(or `raspberry` if you're using an RPI based SoC)*
+
+   On MacOS / Unix: 
+   - `ssh pi@theos.local`
+
+   On Windows:
+   - use Putty to establish a ssh connection
+
+2. **Start Klipper Firmware Configurator:**
+   ```plaintext
+   cd ~/klipper
+   make menuconfig
+3. **Configure Klipper Firmware Settings:**
+
+- [**\***] Tick: Enable extra low-level configuration options
+- Micro-controller Architecture: **STMicroelectronics STM32**
+- Processor model: **STM32H723**
+- Bootloader offset: **128KiB bootloader**
+- Clock Reference: **25 MHz crystal**
+- Communication interface: **USB (on PA11/PA12)**
+- In USB ids
+   - Let vendor ID and device ID unchanged (should be 0x1d50 an 0x614e)
+   - \[ ] Untick: USB serial number from CHIPID
+   - Set USB serial number to: **btt-kraken**
+- GPIO pins to set at micro-controller startup: **PA0**
+
+   Exit the Configurator by pressing **q** to quit and confirming with **y** to save and exit.
+
+4. **Get the serial id of your board**
+Ensure that your board is correctly connected by listing the serial devices.
+
+   ```
+   ls -la /dev/serial/by-id/*
+You should see an entry similar to: `/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00 -> ../../ttyACM0`. 
+
+If the expected device is not listed, there may be a connection problem between your SoC and the 3D Printer Board. Ensure all cables are connected also check the board manufacturer's troubleshooting documentation for further assistance.
+
+5. Flashing the Firmware
+
+Flash the Klipper firmware onto your board using the `make flash` command with the serial ID of your board as the `FLASH_DEVICE` parameter.
+
+      sudo service klipper stop
+      sudo make flash FLASH_DEVICE="/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00"
+      sudo service klipper start
+
+Ensure you replace `/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00` with your boards's unique serial ID obtained from Step 4.
+
+You will be prompted to enter your password to execute these commands with sudo privileges. The flashing process typically takes about **30 seconds**. If the process exits with a `255` error, do not worry. This is a known bug in the `dfu-util` tool that Klipper uses to flash STM32 devices and does not affect the flashing process. 
+
+After flashing, verify that the firmware was successfully flashed by checking for the device:
+
+      ls -la /dev/btt*
+
+You should see a device `/dev/btt-kraken` as output. Once you have confirmed that your board was flashed sucessfully close your ssh connection and navigate back to your THEOS Web-Interface using your web browser. The previous red error message should now be gone. Your printer should now be ready to use!
+
+
+
 
 ## What’s Included?
 
