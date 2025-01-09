@@ -366,46 +366,47 @@ Use the following credentials to establish an SSH connection:
    make menuconfig
 3. **Configure Klipper Firmware Settings:**
 
-- [**\***] Tick: Enable extra low-level configuration options
-- Micro-controller Architecture: **STMicroelectronics STM32**
-- Processor model: **STM32H723**
-- Bootloader offset: **128KiB bootloader**
-- Clock Reference: **25 MHz crystal**
-- Communication interface: **USB (on PA11/PA12)**
-- In USB ids
-   - Let vendor ID and device ID unchanged (should be 0x1d50 an 0x614e)
-   - \[ ] Untick: USB serial number from CHIPID
-   - Set USB serial number to: **btt-kraken**
-- GPIO pins to set at micro-controller startup: **PA0**
+    - [**\***] Tick: Enable extra low-level configuration options
+    - Micro-controller Architecture: **STMicroelectronics STM32**
+    - Processor model: **STM32H723**
+    - Bootloader offset: **128KiB bootloader**
+    - Clock Reference: **25 MHz crystal**
+    - Communication interface: **USB (on PA11/PA12)**
+    - In USB ids
+       - Let vendor ID and device ID unchanged (should be 0x1d50 an 0x614e)
+       - \[] Untick: USB serial number from CHIPID
+       - Set USB serial number to: **btt-kraken**
+    - GPIO pins to set at micro-controller startup: **PA0**
 
    Exit the Configurator by pressing **q** to quit and confirming with **y** to save and exit.
 
-4. **Get the serial id of your board**
-Ensure that your board is correctly connected by listing the serial devices.
+4. **Get the serial id of your board:**
+   
+    Ensure that your board is correctly connected by listing the serial devices.
 
-   ```
-   ls -la /dev/serial/by-id/*
-You should see an entry similar to: `/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00 -> ../../ttyACM0`. 
+        ls -la /dev/serial/by-id/*
 
-If the expected device is not listed, there may be a connection problem between your SoC and the 3D Printer Board. Ensure all cables are connected also check the board manufacturer's troubleshooting documentation for further assistance.
+   You should see an entry similar to: `/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00 -> ../../ttyACM0`. 
+   
+   If the expected device is not listed, there may be a connection problem between your SoC and the 3D Printer Board. Ensure all cables are connected also check the board manufacturer's troubleshooting documentation for further assistance.
 
-5. Flashing the Firmware
+6. **Flashing the Firmware**
 
-Flash the Klipper firmware onto your board using the `make flash` command with the serial ID of your board as the `FLASH_DEVICE` parameter.
+    Flash the Klipper firmware onto your board using the `make flash` command with the serial ID of your board as the `FLASH_DEVICE` parameter.
 
-      sudo service klipper stop
-      sudo make flash FLASH_DEVICE="/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00"
-      sudo service klipper start
+        sudo service klipper stop
+        sudo make flash FLASH_DEVICE="/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00"
+        sudo service klipper start
 
-Ensure you replace `/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00` with your boards's unique serial ID obtained from Step 4.
+    Ensure you replace `/dev/serial/by-id/usb-Klipper_stm32h723xx_426456267152334-if00` with your boards's unique serial ID obtained from Step 4.
 
-You will be prompted to enter your password to execute these commands with sudo privileges. The flashing process typically takes about **30 seconds**. If the process exits with a `255` error, do not worry. This is a known bug in the `dfu-util` tool that Klipper uses to flash STM32 devices and does not affect the flashing process. 
+    You will be prompted to enter your password to execute these commands with sudo privileges. The flashing process typically takes about **30 seconds**. If the process exits with a `255` error, do not worry. This is a known bug in the `dfu-util` tool that Klipper uses to flash STM32 devices and does not affect the flashing process. 
 
-After flashing, verify that the firmware was successfully flashed by checking for the device:
+    After flashing, verify that the firmware was successfully flashed by checking for the device:
 
-      ls -la /dev/btt*
+        ls -la /dev/btt*
 
-You should see a device `/dev/btt-kraken` as output. Once you have confirmed that your board was flashed sucessfully close your ssh connection and navigate back to your THEOS Web-Interface using your web browser. The previous red error message should now be gone. Your printer should now be ready to use!
+    You should see a device `/dev/btt-kraken` as output. Once you have confirmed that your board was flashed sucessfully close your ssh connection and navigate back to your THEOS Web-Interface using your web browser. The previous red error message should now be gone. Your printer should now be ready to use!
 
 
 
