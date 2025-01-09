@@ -211,7 +211,7 @@ THEOS introduces a streamlined and automated update process designed for both so
 **Overview of Update Process:**
 
 <p align="left">
-   <img src=".github/theos-architecture.png" style="width:70%">
+   <img src=".github/theos-architecture.png" style="width:100%">
 </p>
 
 
