@@ -92,7 +92,7 @@ Here’s a quick overview of what the new config parser can do:
 The purpose of the `[constants]` namespace is to provide a central place for defining and configuring core parameters. This approach moves us away from using _USER_VARIABLE namespaces, which became a workaround standard outside of THEOS for macro development:<br><br>
 
    <p align="left">
-      <img src=".github/uservars.png" style="width:30%">
+      <img src=".github/uservars.png" style="width:50%">
    </p>
 
    **Why move away from _USER_VARIABLE?**
@@ -103,7 +103,7 @@ The purpose of the `[constants]` namespace is to provide a central place for def
    To solve the issue of needing certain values outside of macros, I decided to give the Config Parser the ability to reference config values directly:<br><br>
 
    <p align="left">
-      <img src=".github/reference.png" style="width:50%">
+      <img src=".github/reference.png" style="width:70%">
    </p>
 
    This means you can now assign properties by pulling in values from other sections or other properties.<br><br>
@@ -112,7 +112,7 @@ The purpose of the `[constants]` namespace is to provide a central place for def
    I’ve enhanced the existing reference interpolation logic so that it can be used anywhere in the configuration—even in include statements:<br><br>
 
    <p align="left">
-      <img src=".github/includeRef.png" style="width:80%">
+      <img src=".github/includeRef.png" style="width:100%">
    </p>
 
     For instance, you can now use constants to load the correct bed configuration for your printer. The Config Parser resolves these variables when loading includes. It doesn’t matter where the constants are defined—the parser is smart enough to figure it out.<br><br>
@@ -121,7 +121,7 @@ The purpose of the `[constants]` namespace is to provide a central place for def
    To push the idea further, I thought it’d be cool if an include could decide whether it should be loaded or not. Now, you can use conditional logic in your config to include a file only when certain conditions are met:
 
    <p align="left">
-      <img src=".github/conditionalIncludes.png" style="width:60%">
+      <img src=".github/conditionalIncludes.png" style="width:80%">
    </p>
 
    In this Example only **printer/t250.cfg** will be loaded since the expression for the t100 is **false**.
@@ -129,7 +129,7 @@ The purpose of the `[constants]` namespace is to provide a central place for def
    This allows you to get rid definitions you might have seen in template files in other projects (e.g., klippain or rat_configuration):<br><br>
 
    <p align="left">
-      <img src=".github/klippain_templates.png" style="width:80%">
+      <img src=".github/klippain_templates.png" style="width:100%">
    </p>
    
 
@@ -158,13 +158,13 @@ The purpose of the `[constants]` namespace is to provide a central place for def
    Macros are often overloaded in Klipper to adjust call parameters depending on variables. Here's an example from Klippain:<br><br>
 
    <p align="left">
-      <img src=".github/TReso.PNG" style="width:70%">
+      <img src=".github/TReso.PNG" style="width:90%">
    </p>
 
    What the new `TEST_RESONANCES` does is automatically set the value of **POINT** to the center of the print bed if we don't overwrite it with a user variable. If the TEST_RESONANCES macro in Klipper changes in the future, it could make our macro override incompatible. Many of us experienced this during the update to Klipper 0.12 when **cruise_ratio** replaced **max_accel_to_decel**. So, what would a more robust version look like?<br><br>
 
    <p align="left">
-      <img src=".github/ArithmeticSizeBed.PNG" style="width:40%">
+      <img src=".github/ArithmeticSizeBed.PNG" style="width:60%">
    </p>
 
    As you can see, overloading with my ConfigParser adjustments is no longer necessary. The new parser now supports basic arithmetic operations (+, -, *, /) and automatically calculates these for us when loading the configuration. It is also possible to reference variables in the calculations to dynamically compute values.<br><br>
@@ -172,13 +172,13 @@ The purpose of the `[constants]` namespace is to provide a central place for def
    Another great example would be this one:<br><br>
 
    <p align="left">
-      <img src=".github/DynMesh.PNG" style="width:40%">
+      <img src=".github/DynMesh.PNG" style="width:60%">
    </p>
    
    This config snippet automatically calculates the size of the bed mesh based on the size of the bed and a defined padding. The great thing about this is that the calculation happens when the config is loaded, meaning the entire dynamic process doesn’t cost us any CPU time. Compared to the macro approach, which is evaluated at the time of execution, our version is faster. The loaded config looks like this for Klipper:<br><br>
 
    <p align="left">
-      <img src=".github/DynMeshCalculated.PNG" style="width:40%">
+      <img src=".github/DynMeshCalculated.PNG" style="width:60%">
    </p>
 
    All of this together enables entirely new ways of modularizing printer configurations. We no longer need to use crude constructs like the user templates from Klippain, nor do we need to overload every onboard macro from Klipper to incorporate our configuration modules into the macro. Most importantly, it allows us to remove many of these macros and replace them with simple property manipulations.<br><br>
