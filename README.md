@@ -181,29 +181,18 @@ The purpose of the `[constants]` namespace is to provide a central place for def
       <img src=".github/DynMeshCalculated.PNG" style="width:60%">
    </p>
 
-   All of this together enables entirely new ways of modularizing printer configurations. We no longer need to use crude constructs like the user templates from Klippain, nor do we need to overload every onboard macro from Klipper to incorporate our configuration modules into the macro. Most importantly, it allows us to remove many of these macros and replace them with simple property manipulations.<br><br>
-
-   This makes the configuration more maintainable, as well-written configurations clearly state what they do at first glance.<br><br>
-
 - **Arithmetic Built-Ins** 
 
    There are situations where simple mathematical expressions just aren't enough to solve the problem effectively. To address this, I decided to introduce a set of powerful and practical enhancements to the arithmetic expressions, making them more versatile and capable of handling complex scenarios: <br><br>
 
    - **Min/Max Operations**: Constraining values within defined limits.
-   - **Abs/Round Operations**: Supporting additional mathematical functions for greater flexibility and precision.
+   - **Abs/Round Operations**: Supporting additional mathematical functions for greater flexibility and precision.<br><br>
+
+All of this together enables entirely new ways of modularizing printer configurations. We no longer need to use crude constructs like the user templates from Klippain, nor do we need to overload every onboard macro from Klipper to incorporate our configuration modules into the macro. Most importantly, it allows us to remove many of these macros and replace them with simple property manipulations.
+
+This makes the configuration more maintainable, as well-written configurations clearly state what they do at first glance.
    
-
-Default Values: Setting default values when a variable is missing to prevent configuration errors.
-
-Min/Max Operations: Constraining values within defined limits.
-
-Abs/Round Operations: Supporting additional mathematical functions for greater flexibility and precision.
-
-Value Overwrite: Prioritizing printer.cfg values over sub-configurations for better customization options.
-
-   
-
-### **Theos Architecture**
+### **THEOS Architecture**
 
 THEOS introduces a streamlined and automated update process designed for both software and firmware, integrated seamlessly into the MainsailOS builder. This system ensures hassle-free management of key components like THEOS, Klipper, Moonraker, and managed firmware boards.
 
