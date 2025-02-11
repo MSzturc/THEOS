@@ -2,6 +2,13 @@
 # Changelog
 All notable changes to THEOS will be documented in this file.
 
+## [1.1.0](https://github.com/MSzturc/THEOS/releases/tag/1.1.0) - 2025-02-07
+### Documentation
+
+- Enhanced Wifi-Setup section
+- Added a Chapter about Firmware Flashing
+- Added Feature Overview to THEOS  Overview Page
+
 ## [1.0.0](https://github.com/MSzturc/THEOS/releases/tag/1.0.0) - 2025-01-02
 ### Features
 
