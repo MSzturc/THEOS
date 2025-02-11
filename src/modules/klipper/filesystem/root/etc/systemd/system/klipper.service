@@ -12,6 +12,7 @@ WantedBy=multi-user.target
 Type=simple
 User=pi
 LimitRTPRIO=99
+AmbientCapabilities=CAP_SYS_NICE
 RemainAfterExit=yes
 WorkingDirectory=/home/pi/klipper
 EnvironmentFile=/home/pi/printer_data/systemd/klipper.env
