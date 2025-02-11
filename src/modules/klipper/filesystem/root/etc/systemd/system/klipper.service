@@ -11,6 +11,7 @@ WantedBy=multi-user.target
 [Service]
 Type=simple
 User=pi
+LimitRTPRIO=99
 RemainAfterExit=yes
 WorkingDirectory=/home/pi/klipper
 EnvironmentFile=/home/pi/printer_data/systemd/klipper.env
