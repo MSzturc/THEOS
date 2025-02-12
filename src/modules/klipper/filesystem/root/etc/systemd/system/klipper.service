@@ -13,6 +13,7 @@ Type=simple
 User=pi
 LimitRTPRIO=99
 AmbientCapabilities=CAP_SYS_NICE
+CPUAffinity=1,2,3
 RemainAfterExit=yes
 WorkingDirectory=/home/pi/klipper
 EnvironmentFile=/home/pi/printer_data/systemd/klipper.env
