@@ -83,11 +83,12 @@ fi
 ## END Step 5
 
 ## Step 6: Enable SPI interface by default
-echo_green "Enable SPI interface on Orange Pi SBC's ..."
 
 ### Substep 1: Copy default config to backup file
-cp "${ARMBIAN_CONFIG_TXT_FILE}" "${ARMBIAN_CONFIG_BAK_FILE}"
-### END Substep 1
+if [ -f "${ARMBIAN_CONFIG_TXT_FILE}" ]; then
+    echo_green "Enable SPI interface on Orange Pi SBC's ..."
+    cp "${ARMBIAN_CONFIG_TXT_FILE}" "${ARMBIAN_CONFIG_BAK_FILE}" || exit 1
+fi
 
 ### Substep 2: Enable SPI in armbianEnv.txt depending on device
 #### OrangePi 3 LTS
