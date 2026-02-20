@@ -80,4 +80,4 @@ popd &> /dev/null || exit 1
 popd &> /dev/null || exit 1
 
 ## Finish
-echo_green "Installing Klippain THE100-Configuration ... DONE!"
+echo_green "Installing THE100-Configuration ... DONE!"
