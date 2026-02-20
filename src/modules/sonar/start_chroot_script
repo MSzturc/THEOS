@@ -37,13 +37,13 @@ pushd "/home/${BASE_USER}" &> /dev/null || exit 1
 echo_green "Clone sonar repository ..."
 gitclone SONAR_REPO sonar
 
-## Step 3: grep PKGLIST from install.sh for dependencies
+## Step 3: grep pkglist from install.sh for dependencies
 echo_green "Generating packages file ..."
-grep "PKGLIST=" "${SR_BUILD_INSTALL_SH}" >> "${SR_BUILD_PACKAGE_FILE}"
+grep "pkglist=" "${SR_BUILD_INSTALL_SH}" >> "${SR_BUILD_PACKAGE_FILE}"
 
-## Step 4: Rename PKGLIST to Module usable Var
-echo_green "Rename variable PKGLIST to SONAR_DEPS ..."
-sed -i 's/PKGLIST/SONAR_DEPS/g' "${SR_BUILD_PACKAGE_FILE}"
+## Step 4: Rename pkglist to Module usable Var
+echo_green "Rename variable pkglist to SONAR_DEPS ..."
+sed -i 's/pkglist/SONAR_DEPS/g' "${SR_BUILD_PACKAGE_FILE}"
 
 ## Step 5: Source SR_package.lst file
 # shellcheck disable=SC1090
