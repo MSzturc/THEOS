@@ -26,6 +26,8 @@ BASE_RELEASE_COMPRESS=no
 # Modules are valid for 32bit and 64bit images
 MODULES="base(pkgupgrade,udev_fix,armbian(headless_nm,mainsailos,klipper,is_req_preinstall,moonraker,mainsail,shaketune,the100_config,timelapse,crowsnest,sonar))"
 
+PKGUPGRADE_DISTUPGRADE=n
+
 # export Variables
 export DOWNLOAD_BASE_URL
 export BASE_ADD_USER
@@ -38,6 +40,7 @@ export BASE_IMAGE_ENLARGEROOT
 export BASE_IMAGE_RESIZEROOT
 export BASE_RELEASE_COMPRESS
 export MODULES
+export PKGUPGRADE_DISTUPGRADE
 
 ### JSON sniplet Setup
 ### NOTE: Please see all config files for setup variables!!!
