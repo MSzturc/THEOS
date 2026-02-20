@@ -15,10 +15,14 @@
 # Each entry will be used in setup matrix
 
 buildtest:
-  - armbian/bananapim2zero
-  - armbian/bananapim2zero_nightly
-  - armbian/orangepi_zero3
-  - armbian/orangepi_zero3_nightly
+  - armbian/bananapim2zero_bookworm
+  - armbian/bananapim2zero_trixie
+  - armbian/orangepi_zero3_bookworm
+  - armbian/orangepi_zero3_trixie
+  - armbian/radxa_cubie_a5e_bookworm
+  - armbian/radxa_cubie_a5e_trixie
+  - armbian/rpi5_bookworm
+  - armbian/rpi5_trixie
   - raspberry/rpi32
   - raspberry/rpi64
 
@@ -26,5 +30,5 @@ buildtest:
 # Each entry will be used in setup matrix for releases
 
 release:
-  - armbian/bananapim2zero
-  - armbian/orangepi_zero3
+  - armbian/bananapim2zero_bookworm
+  - armbian/orangepi_zero3_bookworm
