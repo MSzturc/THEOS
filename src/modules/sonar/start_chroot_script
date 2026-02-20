@@ -26,6 +26,7 @@ echo_green "Installing sonar ..."
 
 ## Force apt update
 apt-get update
+
 ## Make sure 'git' is installed!
 check_install_pkgs git
 

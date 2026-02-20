@@ -28,6 +28,24 @@ is_board_type() {
     echo "${board}"
 }
 
+ensure_tmp_writable() {
+    # Create /tmp if missing
+    if [ ! -d "/tmp" ]; then
+        mkdir -p "/tmp" || return 1
+    fi
+
+    # Force correct permissions (sticky bit)
+    chmod 1777 "/tmp" || return 1
+
+    # Ensure it's writable (apt needs to create temp files)
+    # Use mktemp to verify functionality.
+    local _t
+    _t="$(mktemp "/tmp/apt.tmp.XXXXXX" 2>/dev/null)" || return 1
+    rm -f "${_t}" || true
+
+    return 0
+}
+
 # Base User groups
 # Shameless "stolen" from
 # https://github.com/guysoft/CustomPiOS/blob/devel/src/variants/armbian/pre_chroot_script
@@ -38,6 +56,8 @@ if_group_exists_run() {
         "${@:2}"
     fi
 }
+
+ensure_tmp_writable || exit 1
 
 # passwordless sudo during install
 # Will be removed in cleanup
