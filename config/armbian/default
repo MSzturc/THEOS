@@ -24,7 +24,7 @@ BASE_IMAGE_RESIZEROOT=600
 # Compress not needed due compression done in workflow
 BASE_RELEASE_COMPRESS=no
 # Modules are valid for 32bit and 64bit images
-MODULES="base(pkgupgrade,udev_fix,armbian(headless_nm,mainsailos,klipper,is_req_preinstall,moonraker,mainsail,shaketune,the100_config,timelapse,crowsnest,sonar))"
+MODULES="base(pkgupgrade,udev_fix,armbian(headless_nm,mainsailos,klipper,is_req_preinstall,moonraker,mainsail,shaketune,timelapse,crowsnest,sonar,the100_config))"
 
 PKGUPGRADE_DISTUPGRADE=n
 
