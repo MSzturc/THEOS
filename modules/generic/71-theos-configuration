@@ -1,0 +1,77 @@
+#!/bin/bash
+set -xe
+export LC_ALL=C
+
+########################################
+# Functions and Basic Configuration    #
+########################################
+
+# Load common functions and set up cleanup trap
+source /common.sh
+install_cleanup_trap
+
+# Load additional configuration (e.g., BASE_USER)
+source /files/00-config
+
+########################################
+# Configuration                        #
+########################################
+
+REPO="https://github.com/MSzturc/THEOS-Configuration.git"
+DEPS="git"
+
+########################################
+# Install dependencies                 #
+########################################
+
+apt-get install --yes "${DEPS}"
+
+########################################
+# Save current dir and switch to home  #
+########################################
+
+pushd "/home/${BASE_USER}" &> /dev/null || exit 1
+
+########################################
+# Clone repository                     #
+########################################
+
+echo "Cloning Repository"
+sudo -u "${BASE_USER}" git clone ${REPO} THEOS-Configuration
+
+########################################
+# Create printer_data directories      #
+########################################
+
+create_user_directories
+
+########################################
+# Jump into THEOS installer, run       #
+# installer and go back to home        #
+########################################
+
+echo "Execute installer"
+pushd "THEOS-Configuration" &> /dev/null || exit 1
+#pushd "scripts" &> /dev/null || exit 1
+
+# Make all .sh files in the repository executable
+find . -type f -name "*.sh" -exec chmod +x {} \;
+
+sudo -u "${BASE_USER}" ./scripts/install-configuration.sh
+
+popd &> /dev/null || exit 1
+#popd &> /dev/null || exit 1
+
+########################################
+# Add config to moonraker.conf         #
+########################################
+
+if [[ -f $MOONRAKER_CONFIG ]]; then
+    cat /files/moonraker_theos.conf >> "$MOONRAKER_CONFIG"
+fi
+
+########################################
+# Return to saved directory            #
+########################################
+
+popd &> /dev/null || exit 1

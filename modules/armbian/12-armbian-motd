@@ -1,0 +1,37 @@
+#!/bin/bash
+set -xe
+export LC_ALL=C
+
+########################################
+# Functions and Basic Configuration    #
+########################################
+
+# Load common functions and set up cleanup trap
+source /common.sh
+install_cleanup_trap
+
+# Load additional configuration (e.g., BASE_USER)
+source /files/00-config
+
+########################################
+# Copy motd config                     #
+########################################
+
+cp /files/12-theos-header /etc/update-motd.d/12-theos-header
+
+########################################
+# fix file permissions                 #
+########################################
+
+find /etc/update-motd.d/ -type f ! -name "*unattended*" -exec chmod +x {} +
+
+########################################
+# Patch dynamic motd                   #
+########################################
+
+if [ -f /etc/default/armbian-motd ] ; then
+    # pre bookworm
+    sed -i 's/MOTD_DISABLE=""/MOTD_DISABLE="header"/' /etc/default/armbian-motd
+    # bookworm and newer
+    sed -i 's/MOTD_DISABLE="clear"/MOTD_DISABLE="clear header"/' /etc/default/armbian-motd
+fi

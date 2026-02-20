@@ -1,324 +1,320 @@
-name: Release
+name: "Release"
 
 on:
   workflow_dispatch:
     inputs:
       version:
+        description: 'Release-Version (Format: X.Y.Z or X.Y.Z-alpha.N)'
         type: string
-        description: New version number in X.Y.Z
-        required: true
+        required: false
 
 jobs:
-  push-version-number:
-    name: Push version number
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Clone develop repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT }}
-          ref: "develop"
-
-      - name: Get current version
-        id: current-version
-        shell: bash
-        run: |
-          source ./config/default
-          echo "version=${DIST_VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Push version number
-        if: steps.current-version.outputs.version != github.event.inputs.version
-        shell: bash
-        run: |
-          sed -i "s|^DIST_VERSION.*|DIST_VERSION=\"${{ github.event.inputs.version }}\"|" ./config/default
-
-      - name: git add & commit & push
-        if: steps.current-version.outputs.version != github.event.inputs.version
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: "./config/default"
-          default_author: github_actions
-          message: "chore: push version number to v${{ github.event.inputs.version }}"
-          push: true
-
-  update-master-branch:
-    name: Update master branch
-    needs: push-version-number
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: everlytic/branch-merge@1.1.5
-        with:
-          github_token: ${{ secrets.PAT }}
-          source_ref: "develop"
-          target_branch: "master"
-          commit_message_template: "[Automated] Merged {source_ref} into target {target_branch}"
-
-  release:
-    name: Create Release
-    needs: update-master-branch
-    runs-on: ubuntu-22.04
+  prepare-release:
+    runs-on: ubuntu-latest
     outputs:
-      id: ${{ steps.create-release.outputs.id }}
-      date: ${{ steps.base-name.outputs.date }}
+      release_id: ${{ steps.create_release.outputs.id }}
     steps:
-      - name: Checkout
+      - name: "📥 Checkout"
         uses: actions/checkout@v4
         with:
-          ref: master
+          ref: develop
           fetch-depth: 0
 
-      - name: Get latest tag
+      - name: "🔎 Check release number"
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo "::error::Version '$VERSION' is not SemVer compliant. Required format: X.Y.Z or X.Y.Z-alpha.N"
+            exit 1
+          fi
+
+          echo "Version '$VERSION' is SemVer compliant."
+
+      - name: "Get latest tag"
         id: latest_tag
         shell: bash
         run: |
           echo "TAG_NAME=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
 
-      - name: Generate a changelog
-        uses: orhun/git-cliff-action@v2
+      - name: "Setup git config"
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: "Update VERSION file"
+        run: |
+          echo "${{ github.event.inputs.version }}" > VERSION
+          git add VERSION
+          git commit -m "chore: bump version to v${{ github.event.inputs.version }}"
+          git push
+
+      - name: "Push tag"
+        run: |
+          git tag -a ${{ github.event.inputs.version }} -m "${{ github.event.inputs.version }}"
+          git push origin ${{ github.event.inputs.version }}
+
+      - name: "Generate a changelog"
+        uses: orhun/git-cliff-action@v4
         id: changelog
         with:
-          config: ./cliff-release.toml
+          config: cliff-release.toml
           args: ${{ steps.latest_tag.outputs.TAG_NAME }}..HEAD
 
-      - name: Create empty release
-        id: create-release
+      - name: "Create Release"
+        id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: "THEOS ${{ github.event.inputs.version }}"
           tag_name: ${{ github.event.inputs.version }}
+          name: THEOS ${{ github.event.inputs.version }}
           body: ${{ steps.changelog.outputs.content }}
           draft: true
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Date
-        id: base-name
-        if: always()
-        shell: bash
-        run: |
-          NOW="$(date +"%Y-%m-%d")"
-          echo "date=${NOW}" >> $GITHUB_OUTPUT
-
-  matrix:
-    name: Create Matrix
-    needs: release
-    runs-on: ubuntu-22.04
+  generate-matrix:
+    runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: ${{ steps.create-matrix.outputs.matrix }}
     steps:
-      - name: Checkout repository
+      - name: "📥 Checkout"
         uses: actions/checkout@v4
         with:
-          ref: master
+          ref: develop
 
-      - name: Create Matrix
-        id: set-matrix
+      - name: "🛠 Generate matrix from config.yml"
+        id: create-matrix
+        shell: python
         run: |
-          PY_INT=$(command -v python3)
-          CONFIG="${{ github.workspace }}/.github/workflow_config.yml"
-          GROUP="release"
-          $PY_INT ${{ github.workspace }}/.github/scripts/setup_matrix.py -c $CONFIG -g $GROUP --git
+          import os, yaml, json
+          with open("config.yml", "r") as f:
+              config = yaml.safe_load(f)
+
+          # Filter out build_only configurations for release
+          release_config = [item for item in config if not item.get('build_only', False)]
+
+          matrix = {"include": release_config}
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              print(f"matrix={json.dumps(matrix)}", file=fh)
 
   build:
-    needs: [release, matrix]
-    runs-on: ubuntu-24.04-arm
-    outputs:
-      base_name: ${{ steps.move-image.outputs.base_name }}
+    needs: [ prepare-release, generate-matrix ]
+    runs-on: ubuntu-22.04-arm
     strategy:
       fail-fast: false
-      matrix:
-        config: ${{ fromJson(needs.matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
-      - name: Checkout Repository
+      - name: "📥 Checkout"
         uses: actions/checkout@v4
         with:
-          ref: master
-          path: repository
-          submodules: true
+          ref: develop
 
-      - name: Build image
-        id: build
-        uses: ./repository/.github/actions/build
-        with:
-          config: ${{ matrix.config }}
-          custompios-ref: 1.5.0
-
-      - name: Upload failed Logfile
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: failed-${{ steps.move-image.outputs.image }}.log
-          path: repository/src/build.log
-
-      - name: Rename image file
-        id: move-image
-        shell: bash
+      - name: "#️⃣️ Set RELEASE_TAG from VERSION file"
         run: |
-          source repository/src/config
-          base_name="${{ needs.release.outputs.date }}-${DIST_NAME}-${DIST_VERSION}"
-          image="${base_name}-${{ steps.build.outputs.type }}-${{ steps.build.outputs.sbc }}"
-          mv repository/src/workspace/*.img $image.img
+          RELEASE_TAG=$(cat VERSION | tr -d '\n')
+          DATE="$(date +"%Y-%m-%d")"
 
-          echo "base_name=${base_name}" >> $GITHUB_OUTPUT
-          echo "image=${image}" >> $GITHUB_OUTPUT
+          echo "DATE=${DATE}" >> $GITHUB_ENV
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
 
-      - name: Compressing Image
-        shell: bash
+      - name: "📁 Create directories"
+        run: |
+          mkdir -p build
+          mkdir -p scripts
+
+      - name: "⬇ Download Image via Torrent"
+        if: ${{ endsWith(matrix.img_download_url, '.torrent') }}
+        run: aria2c -d build --seed-time=0 --enable-dht=false "${{ matrix.img_download_url }}"
+
+      - name: "⬇ Download Image via wget"
+        if: ${{ !endsWith(matrix.img_download_url, '.torrent') }}
+        working-directory: ./build
+        run: wget ${{ matrix.img_download_url }}
+
+      - name: "🔐 Verify image"
+        working-directory: ./build
+        run: curl -Ls ${{  matrix.img_hash_url }} | sha256sum -c
+
+      - name: "🛠 Unpack and rename image"
+        working-directory: ./build
+        run: |
+          # search for the image file in the build directory
+          IMG_FILE=$(ls *.img.xz | head -n 1)
+          echo "Found compressed Image file: ${IMG_FILE}"
+
+          # extract the image file
+          xz -d "${IMG_FILE}"
+
+          DECOMPRESSED_FILE="${IMG_FILE%.xz}"
+          echo "Image file: ${DECOMPRESSED_FILE}"
+
+          # rename the image file
+          mv "${DECOMPRESSED_FILE}" input.img
+
+      - name: "📋 Copy generic and type scripts"
+        run: |
+          cp -r modules/generic/* scripts/
+          cp -r modules/${{ matrix.type }}/* scripts/
+          for file in scripts/*.disabled; do
+            if [ -e "$file" ]; then
+              rm "$file"
+            fi
+          done
+
+      - name: "📋 Copy special modules"
+        if: matrix.special_modules && toJson(matrix.special_modules) != '[]'
+        run: |
+          echo "Special modules found for ${{ matrix.name }}: ${{ toJson(matrix.special_modules) }}"
+
+          # copy additional files for special modules
+          if [ -d "modules/special/files" ]; then
+            echo "Copying common special files..."
+            cp -r modules/special/files/* scripts/files/
+          fi
+
+          # Convert JSON array to bash array
+          readarray -t MODULES < <(echo '${{ toJson(matrix.special_modules) }}' | jq -r '.[]')
+
+          for module in "${MODULES[@]}"; do
+            echo "Copying module: ${module}"
+            cp "modules/special/${module}" scripts/
+          done
+
+      - name: "📇 Generate config.local"
+        shell: python
+        run: |
+          print("Generating config.local file...")
+          import os, json
+          env_vars = json.loads(os.environ.get("MATRIX_ENV", "{}"))
+          with open("config.local", "w") as f:
+              for key, value in env_vars.items():
+                  if not key.startswith("EDITBASE_"):
+                      key = "EDITBASE_" + key
+                  f.write(f"{key}={value}\n")
+        env:
+          MATRIX_ENV: ${{ toJson(matrix.env) }}
+
+      - name: "🔎 Show scripts"
+        working-directory: ./scripts
+        run: ls -la
+
+      - name: "🏗 Run CustoPiZer"
+        uses: OctoPrint/CustoPiZer@main
+        with:
+          workspace: "${{ github.workspace }}/build"
+          scripts:  "${{ github.workspace }}/scripts"
+          config: "${{ github.workspace }}/config.local"
+          environment: '{ "RELEASE_TAG": "${{ env.RELEASE_TAG }}"}'
+          custopizer: "main"
+
+      - name: "✏ Rename image"
+        working-directory: ./build
+        run: |
+          IMAGE="${{ env.DATE }}-THEOS-${{ matrix.name }}-${{ env.RELEASE_TAG }}.img"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+          mv output.img "${IMAGE}"
+
+      - name: "🛠 Compressing Image"
+        working-directory: ./build
         run: |
           CPU_COUNT="$(nproc)"
           echo -e "\e[32mUsing ${CPU_COUNT} Cores for compression...\e[0m"
-          xz -efkvz9T"${CPU_COUNT}" ${{ steps.move-image.outputs.image }}.img || true
+          xz -efkvz9T"${CPU_COUNT}" ${{ env.IMAGE }} || true
 
-      - name: Upload Compressing Image
-        if: success()
-        uses: xresloader/upload-to-github-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_id: ${{ needs.release.outputs.id }}
-          file: ${{ steps.move-image.outputs.image }}.img.xz
-
-      - name: Calculating checksums
-        id: checksums
-        shell: bash
+      - name: "🔐 Create hash"
+        id: hashes
+        working-directory: ./build
         run: |
-          sha256sum ${{ steps.move-image.outputs.image }}.img > ${{ steps.move-image.outputs.image }}.img.sha256
-          image_checksum=`cat ${{ steps.move-image.outputs.image }}.img.sha256 | awk '{ print $1 }'`
+          sha256sum ${{ env.IMAGE }} > ${{ env.IMAGE }}.sha256
+          image_checksum=`cat ${{ env.IMAGE }}.sha256 | awk '{ print $1 }'`
           echo "image=${image_checksum}" >> $GITHUB_OUTPUT
 
-          sha256sum ${{ steps.move-image.outputs.image }}.img.xz > ${{ steps.move-image.outputs.image }}.img.xz.sha256
-          zip_checksum=`cat ${{ steps.move-image.outputs.image }}.img.xz.sha256 | awk '{ print $1 }'`
+          sha256sum ${{ env.IMAGE }}.xz > ${{ env.IMAGE }}.xz.sha256
+          zip_checksum=`cat ${{ env.IMAGE }}.xz.sha256 | awk '{ print $1 }'`
           echo "zip=${zip_checksum}" >> $GITHUB_OUTPUT
 
-      - name: Upload Checksums
-        if: success()
-        uses: xresloader/upload-to-github-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_id: ${{ needs.release.outputs.id }}
-          file: ${{ steps.move-image.outputs.image }}.img.sha256;${{ steps.move-image.outputs.image }}.img.xz.sha256
-
-      - name: Calculating filesizes
+      - name: "Calculating filesizes"
         id: filesizes
-        shell: bash
+        working-directory: ./build
         run: |
-          image_filesize=`wc -c ${{ steps.move-image.outputs.image }}.img | awk '{print $1}'`
+          image_filesize=`wc -c ${{ env.IMAGE }} | awk '{print $1}'`
           echo "image=${image_filesize}" >> $GITHUB_OUTPUT
 
-          zip_filesize=`wc -c ${{ steps.move-image.outputs.image }}.img.xz | awk '{print $1}'`
+          zip_filesize=`wc -c ${{ env.IMAGE }}.xz | awk '{print $1}'`
           echo "zip=${zip_filesize}" >> $GITHUB_OUTPUT
 
-      - name: Debug output
+      - name: "🔧 Generate RPI JSON file"
+        if: ${{ matrix.rpi_json != null }}
+        shell: python
         run: |
-          echo "release-id: ${{ needs.release.outputs.id }}"
-          echo "release-version: ${{ needs.release.outputs.version }}"
+          import json, os
+          from datetime import datetime
 
-          echo "image-name: ${{ steps.move-image.outputs.image }}"
+          matrix = ${{ toJson(matrix) }}
 
-          echo "checksum image: ${{ steps.checksums.outputs.image }}"
-          echo "checksum zip: ${{ steps.checksums.outputs.zip }}"
+          rpi_data = matrix['rpi_json'].copy()
 
-          echo "filesize-image: ${{ steps.filesizes.outputs.image }}"
-          echo "filesize-zip: ${{ steps.filesizes.outputs.zip }}"
+          # set name, if it is not set
+          if 'name' not in rpi_data:
+              rpi_data['name'] = "THEOS $VERSION$"
 
-      - name: Get JSON data
-        id: json-data
-        shell: bash
+          # replace $VERSION$ in name
+          rpi_data['name'] = rpi_data['name'].replace('$VERSION$', "${{ env.RELEASE_TAG }}")
+
+          filename = "${{ env.IMAGE }}.xz"
+          repo = "${{ github.repository }}"
+          release_tag = "${{ env.RELEASE_TAG }}"
+          rpi_data['url'] = f"https://github.com/{repo}/releases/download/{release_tag}/{filename}"
+          rpi_data['release_date'] = "${{ env.DATE }}"
+          rpi_data['extract_size'] = ${{ steps.filesizes.outputs.image }}
+          rpi_data['image_download_size'] = ${{ steps.filesizes.outputs.zip }}
+          rpi_data['extract_sha256'] = "${{ steps.hashes.outputs.image }}"
+
+          os.makedirs('build', exist_ok=True)
+          json_path = "build/${{ env.IMAGE }}.json"
+          with open(json_path, 'w') as f:
+              json.dump(rpi_data, f, indent=2)
+              print("Generated JSON file for ${{ env.IMAGE }}.json")
+
+      - name: "📋 Upload to Release"
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          source repository/src/config
+          TAG="${{ env.RELEASE_TAG }}"
 
-          if [[ -n "${BASE_ARCH}" ]]; then
-            type="64-bit"
-          else
-            type="32-bit"
+          gh release upload "$TAG" "build/${{ env.IMAGE }}.sha256" --clobber
+          gh release upload "$TAG" "build/${{ env.IMAGE }}.xz" --clobber
+          gh release upload "$TAG" "build/${{ env.IMAGE }}.xz.sha256" --clobber
+
+          if [ -f "build/${{ env.IMAGE }}.json" ]; then
+            gh release upload "$TAG" "build/${{ env.IMAGE }}.json" --clobber
           fi
 
-          name="${JSON_PRETTY_NAME} ${{ github.event.inputs.version }}"
-          name="${name} - ${JSON_PRETTY_SBC_NAME}"
-          name="${name} (${type})"
-
-          echo "pretty_name=${name}" >> $GITHUB_OUTPUT
-          echo "description=${JSON_DESCRIPTION}" >> $GITHUB_OUTPUT
-          echo "icon_url=${JSON_ICON_URL}" >> $GITHUB_OUTPUT
-          echo "init_format=${JSON_INIT_FORMAT}" >> $GITHUB_OUTPUT
-          echo "supported_sbc=${JSON_SUPPORTED_SBC}" >> $GITHUB_OUTPUT
-
-      - name: Generate JSON
-        id: json
-        uses: actions/github-script@v6
-        env:
-          name: "${{ steps.json-data.outputs.pretty_name }}"
-          description: "${{ steps.json-data.outputs.description }}"
-          icon: "${{ steps.json-data.outputs.icon_url }}"
-          url: "https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version }}/${{ steps.move-image.outputs.image }}.img.xz"
-          extract_size: ${{ steps.filesizes.outputs.image }}
-          extract_sha256: "${{ steps.checksums.outputs.image }}"
-          image_download_size: ${{ steps.filesizes.outputs.zip }}
-          release_date: "${{ needs.release.outputs.date }}"
-          init_format: "${{ steps.json-data.outputs.init_format }}"
-          supported_sbc: ${{ steps.json-data.outputs.supported_sbc }}
-        with:
-          result-encoding: string
-          script: |
-            const fs = require('fs')
-            const { name, description, icon, url, extract_size, extract_sha256, image_download_size, release_date, init_format, supported_sbc } = process.env
-
-            const json = JSON.stringify({
-              name,
-              description,
-              icon,
-              url,
-              extract_size: parseInt(extract_size),
-              extract_sha256,
-              image_download_size: parseInt(image_download_size),
-              release_date,
-              init_format,
-              devices: supported_sbc.split(" ").filter((item) => item != '')
-            })
-
-            fs.writeFileSync("./${{ steps.move-image.outputs.image }}.json", json)
-
-      - name: Debug output
-        shell: bash
-        run: |
-          cat "./${{ steps.move-image.outputs.image }}.json"
-
-      - name: Upload JSON
-        if: success()
-        uses: xresloader/upload-to-github-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_id: ${{ needs.release.outputs.id }}
-          file: ${{ steps.move-image.outputs.image }}.json
-
-  finish:
-    name: Finish Release
-    needs: [release, build]
-    runs-on: ubuntu-22.04
+  finish-release:
+    needs: [ build ]
+    runs-on: ubuntu-latest
     steps:
-      - name: Publish Release
-        uses: eregon/publish-release@v1
+      - name: "Publish Release"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_id: ${{ needs.release.outputs.id }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit "${{ github.event.inputs.version }}" --draft=false
 
   update-rpi-imager:
-    name: Update rpi-imager json
-    needs: [release, build, finish]
-    runs-on: ubuntu-22.04
+    needs: [ finish-release ]
+    runs-on: ubuntu-latest
     steps:
-      - name: Download snipes
-        uses: robinraju/release-downloader@v1.6
+      - name: "📥 Download snipes"
+        uses: robinraju/release-downloader@v1
         with:
+          repository: ${{ github.repository }}
           tag: ${{ github.event.inputs.version }}
-          fileName: "${{ needs.build.outputs.base_name }}-*.json"
+          fileName: "*.json"
           out-file-path: "downloads"
 
-      - name: Combine JSON
+      - name: "🔧 Combine JSON"
         id: json
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           result-encoding: string
           script: |
@@ -338,67 +334,57 @@ jobs:
             const json = JSON.stringify({os_list})
             fs.writeFileSync('rpi-imager.json', json)
 
-      - name: Upload JSON
-        if: success()
-        uses: xresloader/upload-to-github-release@v1
+      - name: "📋 Upload to Release"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_id: ${{ needs.release.outputs.id }}
-          file: rpi-imager.json
-
-      - name: Move in seperate dir
-        if: ${{ github.repository_owner == 'Mainsail-Crew' }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          mkdir upload
-          mv rpi-imager.json ./upload
-
-      - name: Upload to remote server
-        if: ${{ github.repository_owner == 'Mainsail-Crew' }}
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
-        with:
-          server: ${{ secrets.OSHOST }}
-          username: ${{ secrets.OSUSER }}
-          password: ${{ secrets.OSPASSWORD }}
-          local-dir: ./upload/
+          gh release upload "${{ github.event.inputs.version }}" "rpi-imager.json" --clobber
 
   update-changelog:
-    needs: finish
-    name: Generate changelog
-    runs-on: ubuntu-22.04
+    needs: [ build ]
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
         with:
-          ref: "develop"
-          token: ${{ secrets.PAT }}
+          ref: develop
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Get latest tag
-        id: get_tags
-        shell: bash
-        run: |
-          echo "END_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
-
-          if [[ "${{ github.repository_owner }}" == "Mainsail-Crew" ]]; then
-            echo "START_TAG=0.5.0" >> $GITHUB_OUTPUT
-          else
-            echo "START_TAG=$(git for-each-ref --sort=creatordate --count=1 --format='%(refname:lstrip=2)')" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Generate a changelog
-        uses: orhun/git-cliff-action@v2
+      - name: "Generate a changelog"
+        uses: orhun/git-cliff-action@v4
         id: git-cliff
         with:
           config: cliff.toml
-          args: ${{ steps.get_tags.outputs.START_TAG }}..${{ steps.get_tags.outputs.END_TAG }}
         env:
-          OUTPUT: ${{ github.workspace }}/CHANGELOG.md
+          OUTPUT: CHANGELOG.md
 
-      - name: Show CHANGELOG
+      - name: "Setup git config"
         run: |
-          cat CHANGELOG.md
-      - uses: stefanzweifel/git-auto-commit-action@v4
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: "Commit updated changelog"
+        run: |
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): update changelog"
+          git push
+
+  merge-develop-to-master:
+    needs: [ update-changelog ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
         with:
-          commit_message: "docs(changelog): update changelog"
-          file_pattern: CHANGELOG.md
+          ref: master
+          fetch-depth: 0
+
+      - name: "FF merge to master"
+        uses: MaximeHeckel/github-action-merge-fast-forward@v1.1.0
+        with:
+          branchtomerge: origin/develop
+          branch: master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

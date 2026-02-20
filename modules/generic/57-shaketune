@@ -1,0 +1,75 @@
+#!/bin/bash
+set -xe
+export LC_ALL=C
+
+########################################
+# Functions and Basic Configuration    #
+########################################
+
+# Load common functions and set up cleanup trap
+source /common.sh
+install_cleanup_trap
+
+# Load additional configuration (e.g., BASE_USER)
+source /files/00-config
+
+########################################
+# Configuration                        #
+########################################
+
+REPO="https://github.com/Frix-x/klippain-shaketune.git"
+DEPS="git"
+
+########################################
+# Install dependencies                 #
+########################################
+
+apt-get install --yes "${DEPS}"
+
+########################################
+# Save current dir and switch to home  #
+########################################
+
+pushd "/home/${BASE_USER}" &> /dev/null || exit 1
+
+########################################
+# Clone repository                     #
+########################################
+
+echo "Cloning Repository"
+sudo -u "${BASE_USER}" git clone ${REPO} klippain_installer
+
+########################################
+# Create printer_data directories      #
+########################################
+
+create_user_directories
+
+########################################
+# Jump into klippain_installer, run    #
+# installer and go back to home        #
+########################################
+
+echo "Execute installer"
+pushd "klippain_installer" &> /dev/null || exit 1
+
+# Patch Klippain ShakeTune install routine bypassing user interaction and security checks
+
+sed \
+  -e 's|if \[ "$EUID" -eq 0 \]; then|if false; then|' \
+  -e 's|if ! command -v python3 &> /dev/null; then|if false; then|' \
+  -e 's|if \[.*klipper.service.*\]; then|if true; then|' \
+  < install.sh > temp_install.sh
+chmod +x temp_install.sh
+
+sudo -u "${BASE_USER}" ./temp_install.sh
+rm temp_install.sh
+
+popd &> /dev/null || exit 1
+rm -rf klippain_installer
+
+########################################
+# Return to saved directory            #
+########################################
+
+popd &> /dev/null || exit 1
