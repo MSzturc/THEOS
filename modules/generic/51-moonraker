@@ -50,12 +50,8 @@ create_user_directories
 # and go back to home                  #
 ########################################
 
-echo "Patch installer"
-pushd "moonraker" &> /dev/null || exit 1
 
-sudo -u "${BASE_USER}" sed -i -E \
-  's/^pillow.*/pillow==9.5.0/i' \
-  ./scripts/moonraker-requirements.txt
+pushd "moonraker" &> /dev/null || exit 1
 
 echo "Execute installer"
 sudo -u "${BASE_USER}" ./scripts/install-moonraker.sh -s -z
