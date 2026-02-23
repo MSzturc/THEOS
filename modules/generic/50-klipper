@@ -69,7 +69,7 @@ pushd "/home/${BASE_USER}" &> /dev/null || exit 1
 ########################################
 
 echo "Cloning repo ..."
-sudo -u "${BASE_USER}" git clone ${REPO} klipper
+sudo -u "${BASE_USER}" git clone -b develop ${REPO} klipper
 
 ########################################
 # Create printer_data directories      #
