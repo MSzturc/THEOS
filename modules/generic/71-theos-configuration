@@ -37,7 +37,7 @@ pushd "/home/${BASE_USER}" &> /dev/null || exit 1
 ########################################
 
 echo "Cloning Repository"
-sudo -u "${BASE_USER}" git clone ${REPO} THEOS-Configuration
+sudo -u "${BASE_USER}" git clone -b main ${REPO} THEOS-Configuration
 
 ########################################
 # Create printer_data directories      #
@@ -57,7 +57,7 @@ pushd "THEOS-Configuration" &> /dev/null || exit 1
 # Make all .sh files in the repository executable
 find . -type f -name "*.sh" -exec chmod +x {} \;
 
-sudo -u "${BASE_USER}" ./scripts/install-configuration.sh
+sudo -u "${BASE_USER}" THEOS_IMAGE_BUILD=1 ./scripts/install-configuration.sh
 
 popd &> /dev/null || exit 1
 #popd &> /dev/null || exit 1
