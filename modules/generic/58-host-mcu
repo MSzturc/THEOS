@@ -1,0 +1,22 @@
+#!/bin/bash
+set -xe
+export LC_ALL=C
+
+source /common.sh
+install_cleanup_trap
+source /files/00-config
+
+SRC_DIR="/home/${BASE_USER}/klipper"
+
+echo "Building Klipper Linux host MCU"
+sudo -u "${BASE_USER}" cp /files/linux-mcu.config "${SRC_DIR}/.config"
+pushd "${SRC_DIR}" &> /dev/null || exit 1
+sudo -u "${BASE_USER}" make olddefconfig
+sudo -u "${BASE_USER}" make -j2
+popd &> /dev/null || exit 1
+
+echo "Installing host MCU binary + service"
+cp "${SRC_DIR}/out/klipper.elf" /usr/local/bin/klipper_mcu
+chmod +x /usr/local/bin/klipper_mcu
+cp /files/klipper-mcu.service /etc/systemd/system/klipper-mcu.service
+systemctl_if_exists enable klipper-mcu.service
