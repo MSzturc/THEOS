@@ -56,15 +56,6 @@ pushd "moonraker" &> /dev/null || exit 1
 echo "Execute installer"
 sudo -u "${BASE_USER}" ./scripts/install-moonraker.sh -s -z
 
-# Change Mainsail Klipper origin to MSzturc/Klipper
-CONFIG_FILE="/home/${BASE_USER}/moonraker/moonraker/components/update_manager/common.py"
-OLD_ORIGIN="https://github.com/Klipper3d/klipper.git"
-NEW_ORIGIN="https://github.com/MSzturc/klipper.git"
-sed -i "s|${OLD_ORIGIN}|${NEW_ORIGIN}|g" "${CONFIG_FILE}"
-
-# Get rid of moonraker dirty message
-sudo -u "${BASE_USER}" git update-index --assume-unchanged moonraker/components/update_manager/common.py
-
 # Get rid of untracked timelapse message
 echo "moonraker/components/timelapse.py" | sudo -u "${BASE_USER}" tee -a ".git/info/exclude" > /dev/null
 
