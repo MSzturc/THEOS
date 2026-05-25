@@ -62,7 +62,15 @@ sed \
   < install.sh > temp_install.sh
 chmod +x temp_install.sh
 
-sudo -u "${BASE_USER}" ./temp_install.sh
+# 10.4.0 is the first pillow with a 32-bit Python 3.13 wheel; below it pip source-builds and fails
+PY_MINOR="$(python3 -c 'import sys; print(sys.version_info.minor)')"
+PIP_CONSTRAINT_ENV=()
+if [ "${PY_MINOR}" -ge 13 ]; then
+    printf 'pillow>=10.4.0\n' > /tmp/theos-pip-constraints.txt
+    PIP_CONSTRAINT_ENV=(env "PIP_CONSTRAINT=/tmp/theos-pip-constraints.txt")
+fi
+sudo -u "${BASE_USER}" "${PIP_CONSTRAINT_ENV[@]}" ./temp_install.sh
+rm -f /tmp/theos-pip-constraints.txt
 rm temp_install.sh
 
 popd &> /dev/null || exit 1
