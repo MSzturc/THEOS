@@ -54,7 +54,15 @@ create_user_directories
 pushd "moonraker" &> /dev/null || exit 1
 
 echo "Execute installer"
-sudo -u "${BASE_USER}" ./scripts/install-moonraker.sh -s -z
+# pin above pillow 9.5.0; it has no 32-bit Python 3.13 wheel and its source build fails on 3.13
+PY_MINOR="$(python3 -c 'import sys; print(sys.version_info.minor)')"
+PIP_CONSTRAINT_ENV=()
+if [ "${PY_MINOR}" -ge 13 ]; then
+    printf 'pillow>=10.0.0\n' > /tmp/theos-pip-constraints.txt
+    PIP_CONSTRAINT_ENV=(env "PIP_CONSTRAINT=/tmp/theos-pip-constraints.txt")
+fi
+sudo -u "${BASE_USER}" "${PIP_CONSTRAINT_ENV[@]}" ./scripts/install-moonraker.sh -s -z
+rm -f /tmp/theos-pip-constraints.txt
 
 # Get rid of untracked timelapse message
 echo "moonraker/components/timelapse.py" | sudo -u "${BASE_USER}" tee -a ".git/info/exclude" > /dev/null
