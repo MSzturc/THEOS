@@ -23,7 +23,7 @@ jobs:
       matrix: ${{ steps.create-matrix.outputs.matrix }}
     steps:
       - name: "📥 Checkout"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "🛠 Generate matrix from config.yml"
         id: create-matrix
@@ -44,7 +44,7 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
       - name: "📥 Checkout"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "#️⃣️ Set RELEASE_TAG from VERSION file"
         run: |
