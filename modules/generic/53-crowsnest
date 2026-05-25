@@ -17,8 +17,7 @@ source /files/00-config
 # Configuration                        #
 ########################################
 
-REPO="https://github.com/mryel00/crowsnest-dev.git"
-BRANCH="pynest"
+REPO="https://github.com/mainsail-crew/crowsnest.git"
 DEPS=(git make)
 
 ########################################
@@ -32,7 +31,7 @@ apt-get install --yes "${DEPS[@]}"
 ########################################
 
 pushd "/home/${BASE_USER}" &> /dev/null || exit 1
-sudo -u "${BASE_USER}" git clone ${REPO} crowsnest -b ${BRANCH}
+sudo -u "${BASE_USER}" git clone ${REPO} crowsnest
 popd &> /dev/null || exit 1
 
 ########################################
