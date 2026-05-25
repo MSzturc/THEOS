@@ -26,7 +26,19 @@ fi
 # hold linux kernel updates            #
 ########################################
 
-#apt-mark hold "${HOLD_PKGS[@]}" > /dev/null 2>&1 || true
+HELD_PKGS=()
+for pattern in "${HOLD_PKGS[@]}"; do
+    while IFS= read -r pkg; do
+        [[ -n "${pkg}" ]] && HELD_PKGS+=("${pkg}")
+    # dpkg-query also lists transitional/meta entries that have no installed
+    # version (e.g. linux-dtb-armbian); apt-mark hold exits non-zero on those
+    # and aborts the build, so keep only packages in the installed (ii) state.
+    done < <(dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' "${pattern}" 2>/dev/null \
+                | awk '$1 == "ii" { print $2 }' || true)
+done
+if [[ ${#HELD_PKGS[@]} -gt 0 ]]; then
+    apt-mark hold "${HELD_PKGS[@]}"
+fi
 
 ########################################
 # Execute upgrade                      #
@@ -40,6 +52,14 @@ apt-get -y -o Dpkg::Options::="--force-confnew" upgrade
 
 apt-get -y autoremove
 apt-get clean
+
+########################################
+# release the kernel hold              #
+########################################
+
+if [[ ${#HELD_PKGS[@]} -gt 0 ]]; then
+    apt-mark unhold "${HELD_PKGS[@]}"
+fi
 
 ########################################
 # Add piwheels to global pip resources #
