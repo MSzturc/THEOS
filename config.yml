@@ -18,6 +18,26 @@
     devices:
       - "bananapim2zero-32bit"
 
+- name: banana_pi_m2_zero-trixie
+  type: armbian
+  img_download_url: "https://github.com/MSzturc/armbian-builds/releases/latest/download/armbian-bananapi_m2_zero_trixie.img.xz"
+  img_hash_url: "https://github.com/MSzturc/armbian-builds/releases/latest/download/armbian-bananapi_m2_zero_trixie.img.xz.sha256"
+  env:
+    ARCH: armhf
+    DISTRO: armbian
+    IMAGE_ENLARGEROOT: 6000
+    MOUNT_PROC: 1
+    MOUNT_SYS: 1
+  special_modules:
+    - 20-bpi-m2zero
+  rpi_json:
+    name: "THEOS $VERSION$ - Banana Pi M2 Zero"
+    description: "A prebuilt Image for Banana Pi M2 Zero with preinstalled Klipper, Moonraker, and Mainsail — optimized for running the T100 and T250 3D printers."
+    icon: "https://raw.githubusercontent.com/MSzturc/THEOS/develop/.github/sdcard-logo.png"
+    init_format: "systemd"
+    devices:
+      - "bananapim2zero-32bit"
+
 - name: armbian-orangepi_zero3-bookworm
   type: armbian
   img_download_url: "https://github.com/MSzturc/armbian-builds/releases/latest/download/armbian-orangepi_zero3_bookworm.img.xz"
