@@ -25,9 +25,13 @@ apt-get install --yes "${DEPS[@]}"
 # Copy & modify files to /boot         #
 ########################################
 
-cp /files/headless-nm/headless_nm.txt.template "$BOOT_PATH"/headless_nm.txt.template
-cp /files/headless-nm/WiFi-README.txt "$BOOT_PATH"/WiFi-README.txt
-sed -i 's|OS_NAME|'"${DIST_NAME}"'|g' "$BOOT_PATH"/WiFi-README.txt
+if [[ -d "$BOOT_PATH" && -w "$BOOT_PATH" ]]; then
+    cp /files/headless-nm/headless_nm.txt.template "$BOOT_PATH"/headless_nm.txt.template
+    cp /files/headless-nm/WiFi-README.txt "$BOOT_PATH"/WiFi-README.txt
+    sed -i 's|OS_NAME|'"${DIST_NAME}"'|g' "$BOOT_PATH"/WiFi-README.txt
+else
+    echo "BOOT_PATH '$BOOT_PATH' is not a writable directory; skipping /boot WiFi template copy"
+fi
 
 ########################################
 # Copy & enable service                #
@@ -37,3 +41,17 @@ cp /files/headless-nm/headless_nm.service /etc/systemd/system/headless_nm.servic
 cp /files/headless-nm/headless_nm /usr/local/bin/headless_nm
 chmod +x /usr/local/bin/headless_nm
 systemctl_if_exists enable headless_nm
+
+########################################
+# Order headless_nm after config mount #
+########################################
+
+# Only where fstab mounts the config partition — headless_nm reads its handoff from /boot/theos-config.
+if grep -q '/boot/theos-config' /etc/fstab; then
+    install -d /etc/systemd/system/headless_nm.service.d
+    cat > /etc/systemd/system/headless_nm.service.d/10-theos-config-mount.conf <<'EOF'
+[Unit]
+Wants=boot-theos\x2dconfig.mount
+After=boot-theos\x2dconfig.mount
+EOF
+fi

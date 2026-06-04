@@ -1,0 +1,4 @@
+# Shell scripts run on Linux (printer + CI) and via WSL locally — keep them LF.
+*.sh text eol=lf
+modules/generic/files/headless-nm/headless_nm text eol=lf
+modules/generic/30-headless-nm text eol=lf

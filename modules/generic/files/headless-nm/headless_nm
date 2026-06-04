@@ -34,11 +34,22 @@ DISTRO=""
 UUID=""
 PSK_HASH=""
 KEYMGMT="wpa-psk"
-SETUPFILE="$(find "/boot" -type f -name "headless_nm.txt" 2>/dev/null || true)"
+SETUPFILE=""
 REGDOMAIN=""
 
 
 # functions
+# Deterministic lookup: explicit config-partition path first, else the first
+# headless_nm.txt anywhere under the boot dir (never a multiline result).
+find_setup_file() {
+    local boot="${1:-/boot}"
+    if [[ -f "${boot}/theos-config/headless_nm.txt" ]]; then
+        echo "${boot}/theos-config/headless_nm.txt"
+        return 0
+    fi
+    find "${boot}" -type f -name "headless_nm.txt" -print -quit 2>/dev/null || true
+}
+
 log() {
     local msg="$1"
     logger -t headless_nm "$msg"
@@ -175,6 +186,8 @@ set_regdomain() {
 
 # MAIN
 main() {
+    SETUPFILE="$(find_setup_file /boot)"
+
     if [[ ! -f "${SETUPFILE}" ]]; then
         log "Configuration file not found! Nothing to do, exiting"
         exit 0

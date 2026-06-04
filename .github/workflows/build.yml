@@ -144,6 +144,15 @@ jobs:
           environment: '{ "RELEASE_TAG": "${{ env.RELEASE_TAG }}"}'
           custopizer: "main"
 
+      - name: "🔑 Seed Windows config partition"
+        if: ${{ matrix.env.WINDOWS_CONFIG_PARTITION == 1 }}
+        working-directory: ./build
+        run: |
+          sudo bash "${{ github.workspace }}/tools/seed-config-partition.sh" \
+            output.img \
+            "${{ github.workspace }}/scripts/files/headless-nm" \
+            THEOS
+
       - name: "✏ Rename image"
         working-directory: ./build
         run: |

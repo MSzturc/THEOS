@@ -116,6 +116,27 @@
     devices:
       - "radxa-cubie-a5e-64bit"
 
+- name: armbian-radxa_dragon_q6a-trixie
+  type: armbian
+  img_download_url: "https://github.com/MSzturc/armbian-builds/releases/latest/download/armbian-radxa_dragon_q6a_trixie.img.xz"
+  img_hash_url: "https://github.com/MSzturc/armbian-builds/releases/latest/download/armbian-radxa_dragon_q6a_trixie.img.xz.sha256"
+  env:
+    ARCH: arm64
+    DISTRO: armbian
+    IMAGE_ENLARGEROOT: 6000
+    MOUNT_PROC: 1
+    MOUNT_SYS: 1
+    ROOT_PARTITION: 3
+    WINDOWS_CONFIG_PARTITION: 1
+  special_modules: []
+  rpi_json:
+    name: "THEOS $VERSION$ - Radxa Dragon Q6A"
+    description: "A prebuilt Image for Radxa Dragon Q6A with preinstalled Klipper, Moonraker, and Mainsail — optimized for running the T100 and T250 3D printers."
+    icon: "https://raw.githubusercontent.com/MSzturc/THEOS/develop/.github/sdcard-logo.png"
+    init_format: "systemd"
+    devices:
+      - "radxa-dragon-q6a-64bit"
+
 - name: armbian-rpi_5-bookworm
   type: armbian
   img_download_url: "https://github.com/MSzturc/armbian-builds/releases/latest/download/armbian-rpi_5_bookworm.img.xz"
